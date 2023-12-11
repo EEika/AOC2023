@@ -34,8 +34,6 @@ fn part_1(puzzle_input: &str) -> i64 {
         map.insert(key.trim(), (left.trim(), right.trim()));
     }
 
-    // println!("{:?}", map);
-
     let mut solutions: Vec<i64> = vec![];
 
     let mut placements: Vec<&str> = map
@@ -45,8 +43,6 @@ fn part_1(puzzle_input: &str) -> i64 {
         .collect();
 
     println!("Placements: {:?}", placements);
-
-    // let mut placement = "AAA";
 
     for node in &mut placements {
         let mut counter: i64 = 0;
