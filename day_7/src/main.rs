@@ -194,6 +194,7 @@ enum CardType {
     Three,
     Two,
     Jack,
+    s,
 }
 
 #[cfg(test)]
