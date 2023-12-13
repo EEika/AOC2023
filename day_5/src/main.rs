@@ -3,10 +3,6 @@ use std::fs;
 use std::ops::Range;
 
 fn main() {
-    // let puzzle_input = "50 98 2
-    // 52 50 48";
-    // part_1(puzzle_input);
-
     let puzzle_input = fs::read_to_string("puzzle_input.txt").unwrap();
     part_2(&puzzle_input[..]);
 }
@@ -170,8 +166,8 @@ impl ConvertTable {
         let mut conformed_ranges: Vec<Range<i64>> = vec![];
 
         println!("{:?}", &self.convert_lines);
-        for conv_line in &self.convert_lines {
-            conformed_ranges = ConvertTable::conform_ranges(input_ranges.clone(), &conv_line.from);
+        for range in input_ranges {
+            conformed_ranges = ConvertTable::conform_ranges(range, &self.convert_lines);
         }
 
         let mut converted_ranges: Vec<Range<i64>> = vec![];
@@ -194,48 +190,45 @@ impl ConvertTable {
         converted_ranges
     }
 
-    fn conform_ranges(
-        input_ranges: Vec<Range<i64>>,
-        reference_range: &Range<i64>,
-    ) -> Vec<Range<i64>> {
+    fn conform_ranges(input_range: Range<i64>, conv_lines: Vec<&Range<i64>>) -> Vec<Range<i64>> {
         let mut revised_ranges: Vec<Range<i64>> = vec![];
 
-        for range in input_ranges {
+        for ref_range in reference_ranges {
             match (
-                range.start < reference_range.start,
-                range.end <= reference_range.end,
-                (range.end <= reference_range.start || range.start >= reference_range.end),
+                input_range.start < ref_range.start,
+                input_range.end <= ref_range.end,
+                (input_range.end <= ref_range.start || input_range.start >= ref_range.end),
             ) {
                 (_, _, true) => {
                     println!("Outside");
-                    revised_ranges.push(range);
+                    revised_ranges.push(input_range);
                 }
                 (false, true, _) => {
                     println!("Inside");
-                    revised_ranges.push(range);
+                    revised_ranges.push(input_range);
                 }
                 (true, true, _) => {
                     println!("Start-Overflow");
                     let split_ranges = &[
-                        range.start..reference_range.start,
-                        reference_range.start..range.end,
+                        input_range.start..ref_range.start,
+                        ref_range.start..input_range.end,
                     ];
                     revised_ranges.extend_from_slice(split_ranges);
                 }
                 (false, false, _) => {
                     println!("End-Overflow");
                     let split_ranges = &[
-                        range.start..reference_range.end,
-                        reference_range.end..range.end,
+                        input_range.start..ref_range.end,
+                        ref_range.end..input_range.end,
                     ];
                     revised_ranges.extend_from_slice(split_ranges);
                 }
                 (true, false, _) => {
                     println!("Full-Overflow");
                     let split_ranges = &[
-                        range.start..reference_range.start,
-                        reference_range.start..reference_range.end,
-                        reference_range.end..range.end,
+                        input_range.start..ref_range.start,
+                        ref_range.start..ref_range.end,
+                        ref_range.end..input_range.end,
                     ];
                     revised_ranges.extend_from_slice(split_ranges);
                 }
@@ -249,14 +242,4 @@ impl ConvertTable {
 struct ConvertLine {
     from: Range<i64>,
     difference: i64,
-}
-
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn test_part_1() {
-        let input = "50 98 2
-        52 50 48";
-    }
 }
