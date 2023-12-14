@@ -170,6 +170,66 @@ fn christmas_machine(input: &str) -> (i32, i32) {
         if right_hand_loop {
             for i in 1.. {
                 let coord = (
+                    node_coord.0 + pipe_direction.0 + right_hand_direciton.0 * i,
+                    node_coord.1 + pipe_direction.1 + right_hand_direciton.1 * i,
+                );
+
+                if coord.0 < 0
+                    || coord.1 < 0
+                    || coord.0 >= chart_dimentions.0
+                    || coord.1 >= chart_dimentions.1
+                {
+                    right_hand_loop = false;
+                    break;
+                }
+
+                let neighbor_pipe = &pipe_chart.chart[coord.0 as usize][coord.1 as usize];
+
+                if pipes_in_the_loop.contains(&neighbor_pipe) {
+                    break;
+                }
+
+                //check surrounding
+                for x in 0..3 {
+                    for y in 0..3 {
+                        if !right_hand_nodes.contains(
+                            &&pipe_chart.chart[if coord.0 > 0 {
+                                (coord.0 as usize + x - 1).min(chart_dimentions.0 as usize - 1)
+                            } else {
+                                0
+                            }][if coord.1 > 0 {
+                                (coord.1 as usize + y - 1).min(chart_dimentions.1 as usize - 1)
+                            } else {
+                                0
+                            }],
+                        ) && !pipes_in_the_loop.contains(
+                            &&pipe_chart.chart[if coord.0 > 0 {
+                                (coord.0 as usize + x - 1).min(chart_dimentions.0 as usize - 1)
+                            } else {
+                                0
+                            }][if coord.1 > 0 {
+                                (coord.1 as usize + y - 1).min(chart_dimentions.1 as usize - 1)
+                            } else {
+                                0
+                            }],
+                        ) {
+                            right_hand_nodes.push(
+                                &pipe_chart.chart[if coord.0 > 0 {
+                                    (coord.0 as usize + x - 1).min(chart_dimentions.0 as usize - 1)
+                                } else {
+                                    0
+                                }][if coord.1 > 0 {
+                                    (coord.1 as usize + y - 1).min(chart_dimentions.1 as usize - 1)
+                                } else {
+                                    0
+                                }],
+                            );
+                        }
+                    }
+                }
+            }
+            for i in 1.. {
+                let coord = (
                     node_coord.0 + right_hand_direciton.0 * i,
                     node_coord.1 + right_hand_direciton.1 * i,
                 );
@@ -232,6 +292,66 @@ fn christmas_machine(input: &str) -> (i32, i32) {
 
         // check right hand
         if left_hand_loop {
+            for i in 1.. {
+                let coord = (
+                    node_coord.0 + pipe_direction.0 + left_hand_direciton.0 * i,
+                    node_coord.1 + pipe_direction.1 + left_hand_direciton.1 * i,
+                );
+
+                if coord.0 < 0
+                    || coord.1 < 0
+                    || coord.0 >= chart_dimentions.0
+                    || coord.1 >= chart_dimentions.1
+                {
+                    left_hand_loop = false;
+                    break;
+                }
+
+                let neighbor_pipe = &pipe_chart.chart[coord.0 as usize][coord.1 as usize];
+
+                if pipes_in_the_loop.contains(&neighbor_pipe) {
+                    break;
+                }
+
+                //check surrounding
+                for x in 0..3 {
+                    for y in 0..3 {
+                        if !left_hand_nodes.contains(
+                            &&pipe_chart.chart[if coord.0 > 0 {
+                                (coord.0 as usize + x - 1).min(chart_dimentions.0 as usize - 1)
+                            } else {
+                                0
+                            }][if coord.1 > 0 {
+                                (coord.1 as usize + y - 1).min(chart_dimentions.1 as usize - 1)
+                            } else {
+                                0
+                            }],
+                        ) && !pipes_in_the_loop.contains(
+                            &&pipe_chart.chart[if coord.0 > 0 {
+                                (coord.0 as usize + x - 1).min(chart_dimentions.0 as usize - 1)
+                            } else {
+                                0
+                            }][if coord.1 > 0 {
+                                (coord.1 as usize + y - 1).min(chart_dimentions.1 as usize - 1)
+                            } else {
+                                0
+                            }],
+                        ) {
+                            left_hand_nodes.push(
+                                &pipe_chart.chart[if coord.0 > 0 {
+                                    (coord.0 as usize + x - 1).min(chart_dimentions.0 as usize - 1)
+                                } else {
+                                    0
+                                }][if coord.1 > 0 {
+                                    (coord.1 as usize + y - 1).min(chart_dimentions.1 as usize - 1)
+                                } else {
+                                    0
+                                }],
+                            );
+                        }
+                    }
+                }
+            }
             for i in 1.. {
                 let coord = (
                     node_coord.0 + left_hand_direciton.0 * i,
@@ -447,13 +567,26 @@ mod tests {
     }
 
     #[test]
-    fn test_inner_nodes_tight_turn() {
+    fn test_inner_nodes_tight_turn_left() {
         let input = ".....
         S7F-7
         |LJFJ
         L7.L7
         FJF7|
         L-JLJ";
+
+        let (_, res) = christmas_machine(input);
+        assert_eq!(res, 1);
+    }
+
+    #[test]
+    fn test_inner_nodes_tight_turn_right() {
+        let input = ".....
+        S-7F7
+        L7LJ|
+        FJ.FJ
+        |F7L7
+        LJL-J";
 
         let (_, res) = christmas_machine(input);
         assert_eq!(res, 1);
