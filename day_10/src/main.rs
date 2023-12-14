@@ -3,7 +3,13 @@ use std::fs;
 fn main() {
     let puzzle_input = fs::read_to_string("puzzle_input.txt").unwrap();
 
-    let pipe_chart = PipeChart::new(&puzzle_input);
+    let (solu_1, solu_2) = christmas_machine(&puzzle_input);
+
+    println!("Solution part 1: {solu_1}");
+    println!("Solution part 2: {solu_2}");
+}
+fn christmas_machine(input: &str) -> (i32, i32) {
+    let pipe_chart = PipeChart::new(input);
 
     let chart_dimentions: (i32, i32) = (
         pipe_chart.chart.len() as i32,
@@ -17,7 +23,10 @@ fn main() {
 
     let mut pipes_in_the_loop: Vec<&PipeNode> = vec![];
 
-    'outer: while step_counter < chart_dimentions.0 * chart_dimentions.1 {
+    'outer: while (step_counter < chart_dimentions.0 * chart_dimentions.1
+        && !(next_node.pipe_type == PipeType::Start))
+        || step_counter == 0
+    {
         step_counter += 1;
 
         //Check north
@@ -285,16 +294,21 @@ fn main() {
             }
         }
     }
+    let mut inner_nodes = 0;
 
     println!("");
     println!("Number of steps: {step_counter}");
-    println!("Solution, part 1: {}", step_counter / 2);
     println!("");
+
     if right_hand_loop {
         println!("Right hand inside: {}", right_hand_nodes.len());
+        inner_nodes = right_hand_nodes.len() as i32;
     } else if left_hand_loop {
         println!("Left hand inside: {}", left_hand_nodes.len());
+        inner_nodes = left_hand_nodes.len() as i32;
     }
+
+    (step_counter / 2, inner_nodes)
 }
 
 struct PipeChart {
@@ -315,7 +329,7 @@ impl PipeChart {
             let mut pipe_line: Vec<PipeNode> = vec![];
 
             // println!("{line}");
-            for (p, col_index) in line.chars().zip(0..) {
+            for (p, col_index) in line.trim().chars().zip(0..) {
                 let new_node = PipeNode::new(p, (row_index, col_index));
                 pipe_line.push(new_node);
             }
@@ -376,5 +390,72 @@ impl PipeType {
             'S' => return PipeType::Start,
             _ => return PipeType::Ground,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::christmas_machine;
+    // use std::prelude::*;
+
+    #[test]
+    fn test_inner_nodes_1() {
+        let input = "...........
+        .S-------7.
+        .|F-----7|.
+        .||.....||.
+        .||.....||.
+        .|L-7.F-J|.
+        .|..|.|..|.
+        .L--J.L--J.
+        ...........";
+
+        let (_, res) = christmas_machine(input);
+        assert_eq!(res, 4);
+    }
+    #[test]
+    fn test_inner_nodes_2() {
+        let input = ".F----7F7F7F7F-7....
+        .|F--7||||||||FJ....
+        .||.FJ||||||||L7....
+        FJL7L7LJLJ||LJ.L-7..
+        L--J.L7...LJS7F-7L7.
+        ....F-J..F7FJ|L7L7L7
+        ....L7.F7||L7|.L7L7|
+        .....|FJLJ|FJ|F7|.LJ
+        ....FJL-7.||.||||...
+        ....L---J.LJ.LJLJ...";
+
+        let (_, res) = christmas_machine(input);
+        assert_eq!(res, 8);
+    }
+    #[test]
+    fn test_inner_nodes_3() {
+        let input = "FF7FSF7F7F7F7F7F---7
+        L|LJ||||||||||||F--J
+        FL-7LJLJ||||||LJL-77
+        F--JF--7||LJLJIF7FJ-
+        L---JF-JLJIIIIFJLJJ7
+        |F|F-JF---7IIIL7L|7|
+        |FFJF7L7F-JF7IIL---7
+        7-L-JL7||F7|L7F-7F7|
+        L.L7LFJ|||||FJL7||LJ
+        L7JLJL-JLJLJL--JLJ.L";
+
+        let (_, res) = christmas_machine(input);
+        assert_eq!(res, 10);
+    }
+
+    #[test]
+    fn test_inner_nodes_tight_turn() {
+        let input = ".....
+        S7F-7
+        |LJFJ
+        L7.L7
+        FJF7|
+        L-JLJ";
+
+        let (_, res) = christmas_machine(input);
+        assert_eq!(res, 1);
     }
 }
