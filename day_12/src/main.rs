@@ -1,5 +1,4 @@
 #[allow(dead_code)]
-
 #[derive(Debug, Clone, Copy)]
 struct SpringElement {
     element_type: SpringTypes,
@@ -75,8 +74,11 @@ fn parse_spring_line(spring_line: &str) -> (Vec<SpringElement>, Vec<u32>) {
     (spring_elements, broken_array)
 }
 
-fn evaluate_spring_line(mut spring_line: Vec<SpringElement>, mut broken_array: Vec<u32>, mut permutation_counter : u32) -> u32 {
-
+fn evaluate_spring_line(
+    mut spring_line: Vec<SpringElement>,
+    mut broken_array: Vec<u32>,
+    mut permutation_counter: u32,
+) -> u32 {
     let mut marked_for_recursion = false;
 
     //Remove Operational group - Left
@@ -92,8 +94,8 @@ fn evaluate_spring_line(mut spring_line: Vec<SpringElement>, mut broken_array: V
 
     //Check left - Broken -> collapses next posibility
     if spring_line.get(0).unwrap().element_type == SpringTypes::Damaged
-        //&& spring_line.get(1).unwrap().element_type == SpringTypes::Operational
-        //&& spring_line.first().unwrap().length == *broken_array.first().unwrap()
+    //&& spring_line.get(1).unwrap().element_type == SpringTypes::Operational
+    //&& spring_line.first().unwrap().length == *broken_array.first().unwrap()
     {
         println!("Broken left");
         marked_for_recursion = true;
@@ -101,17 +103,16 @@ fn evaluate_spring_line(mut spring_line: Vec<SpringElement>, mut broken_array: V
         let mut broken_line_length = spring_line.first().unwrap().length;
         let mut broken_array_length = *broken_array.first().unwrap();
 
-        while broken_line_length < broken_array_length{
+        while broken_line_length < broken_array_length {
             println!("Longer");
             broken_array_length -= broken_line_length;
             spring_line.remove(0);
             broken_line_length = spring_line.first().unwrap().length;
         }
 
-        if broken_line_length == broken_array_length{
+        if broken_line_length == broken_array_length {
             spring_line.remove(0);
-        }
-        else {
+        } else {
             spring_line.first_mut().unwrap().length -= broken_array_length;
         }
         broken_array.remove(0);
@@ -119,94 +120,107 @@ fn evaluate_spring_line(mut spring_line: Vec<SpringElement>, mut broken_array: V
     println!("{:?}, {:?}", spring_line, broken_array);
 
     //Check right - Broken -> collapses next posibility
-    if spring_line.last().unwrap().element_type == SpringTypes::Damaged
-    {
+    if spring_line.last().unwrap().element_type == SpringTypes::Damaged {
         println!("Broken right");
         marked_for_recursion = true;
 
         let mut broken_line_length = spring_line.last().unwrap().length;
         let mut broken_array_length = *broken_array.last().unwrap();
 
-        while broken_line_length < broken_array_length{
+        while broken_line_length < broken_array_length {
             println!("Longer");
             broken_array_length -= broken_line_length;
             spring_line.pop();
             broken_line_length = spring_line.last().unwrap().length;
         }
 
-        if broken_line_length == broken_array_length{
+        if broken_line_length == broken_array_length {
             spring_line.pop();
-        }
-        else {
+        } else {
             spring_line.last_mut().unwrap().length -= broken_array_length;
         }
         broken_array.pop();
     }
     println!("{:?}, {:?}", spring_line, broken_array);
 
-    if marked_for_recursion{
+    if marked_for_recursion {
         permutation_counter = evaluate_spring_line(spring_line, broken_array, permutation_counter);
-    }
-    else if broken_array.len() == 1 {
+    } else if broken_array.len() == 1 {
         println!("Just one posibility");
         let mut seg_summer = 0;
-        for seg in spring_line.into_iter().filter(|s| s.element_type == SpringTypes::Unknown){
+        for seg in spring_line
+            .into_iter()
+            .filter(|s| s.element_type == SpringTypes::Unknown)
+        {
             seg_summer += 1 + seg.length - broken_array[0];
         }
         permutation_counter *= seg_summer;
-    }
-    else if broken_array.len() == 2 && spring_line.iter().filter(|s| s.element_type == SpringTypes::Unknown).collect::<Vec<&SpringElement>>().len() == 1{
-        let num_unknowns = spring_line.into_iter().filter(|s| s.element_type == SpringTypes::Unknown).collect::<Vec<SpringElement>>().first().unwrap().length;
-        let sum = (1 ..= &num_unknowns - broken_array.iter().sum::<u32>()).fold(0, |a, b| b);
-        println!("{}", sum );
-    }
-    else if broken_array.len() == 2{
+    } else if broken_array.len() == 2
+        && spring_line
+            .iter()
+            .filter(|s| s.element_type == SpringTypes::Unknown)
+            .collect::<Vec<&SpringElement>>()
+            .len()
+            == 1
+    {
+        let num_unknowns = spring_line
+            .into_iter()
+            .filter(|s| s.element_type == SpringTypes::Unknown)
+            .collect::<Vec<SpringElement>>()
+            .first()
+            .unwrap()
+            .length;
+        let sum = (1..=&num_unknowns - broken_array.iter().sum::<u32>()).fold(0, |a, b| b);
+        println!("{}", sum);
+    } else if broken_array.len() == 2 {
         println!("Fractured 2");
         let mut seg_summer = 0;
-        let mut working_line = spring_line.clone().into_iter().filter(|s| s.element_type == SpringTypes::Unknown);
-        for seg in working_line{
+        let mut working_line = spring_line
+            .clone()
+            .into_iter()
+            .filter(|s| s.element_type == SpringTypes::Unknown);
+        for seg in working_line {
             seg_summer += 1 + seg.length - broken_array[0];
         }
         //let num_unknowns = spring_line.into_iter().filter(|s| s.element_type == SpringTypes::Unknown).collect::<Vec<SpringElement>>().first().unwrap().length;
         //let sum = (1 ..= &num_unknowns - broken_array.iter().sum::<u32>()).fold(0, |a, b| b);
         //println!("{}", num_unknowns - broken_array[0], );
-        println!("{}", 0 );
+        println!("{}", 0);
     }
 
     permutation_counter
 }
 
-fn collaps_to_valid_spot(spring_size : u32, spring_line : Vec<SpringElement>) -> Option<Vec<SpringElement>> {
+fn collaps_to_valid_spot(
+    spring_size: u32,
+    spring_line: Vec<SpringElement>,
+) -> Option<Vec<SpringElement>> {
     let mut spring_counter = 0;
     let mut working_spring_line = spring_line.clone();
     let mut working_spring_size = spring_size;
-    for spring in spring_line.clone(){
-
-        match spring.element_type{
+    for spring in spring_line.clone() {
+        match spring.element_type {
             SpringTypes::Operational => {
                 working_spring_size = spring_size;
                 working_spring_line.remove(0);
-            },
+            }
             SpringTypes::Damaged => {
-                if working_spring_size > spring.length{
+                if working_spring_size > spring.length {
                     working_spring_size -= spring.length;
                     working_spring_line.remove(0);
-
-                }
-                else if working_spring_size < spring.length - 1{
+                } else if working_spring_size < spring.length - 1 {
                     working_spring_line.remove(0);
-                    return Some(working_spring_line)
+                    return Some(working_spring_line);
                 }
-            },
+            }
             SpringTypes::Unknown => {
-                if working_spring_size > spring.length{
+                if working_spring_size > spring.length {
                     working_spring_size -= spring.length;
                     working_spring_line.remove(0);
                 }
             }
         }
     }
-    
 
     None
 }
@@ -214,7 +228,6 @@ fn collaps_to_valid_spot(spring_size : u32, spring_line : Vec<SpringElement>) ->
 mod tests {
     use crate::{evaluate_spring_line, parse_spring_line};
 
-    
     #[test]
     fn group_2_1() {
         let spring_line = ".#?.???.. 2,1";
@@ -240,7 +253,7 @@ mod tests {
 
         assert_eq!(solu, 1);
     }
-#[test]
+    #[test]
     fn group_4_1_1() {
         let spring_line = "????.#...#... 4,1,1";
 
@@ -252,7 +265,7 @@ mod tests {
 
         assert_eq!(solu, 1);
     }
-#[test]
+    #[test]
     fn group_1_6_5() {
         let spring_line = "????.######..#####. 1,6,5";
 
@@ -276,4 +289,4 @@ mod tests {
 
         assert_eq!(solu, 4);
     }
-} 
+}
